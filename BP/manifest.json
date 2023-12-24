@@ -1,0 +1,59 @@
+{
+	"format_version": 2,
+	"metadata": {
+		"authors": [
+			"SpoilerDiacre"
+		],
+		"generated_with": {
+			"bridge": [
+				"2.7.7"
+			],
+			"dash": [
+				"github:bridge-core/dash-compiler#8fa35c73292f6382747d0f411fca26431a6d2c8e"
+			]
+		}
+	},
+	"header": {
+		"name": "pack.name",
+		"description": "pack.description",
+		"min_engine_version": [
+			1,
+			20,
+			40
+		],
+		"uuid": "a9a7a22b-0501-4287-ad51-2cf226f6fa08",
+		"version": [
+			0,
+			9,
+			0
+		]
+	},
+	"modules": [
+		{
+			"type": "data",
+			"uuid": "19c3142b-60b6-404e-b124-453327284c09",
+			"version": [
+				1,
+				0,
+				0
+			]
+		},
+		{
+			"type": "script",
+			"language": "javascript",
+			"uuid": "67f9f43c-646b-4377-9f0e-897ea44dee01",
+			"entry": "scripts/main.js",
+			"version": [
+				1,
+				0,
+				0
+			]
+		}
+	],
+	"dependencies": [
+		{
+			"module_name": "@minecraft/server",
+			"version": "1.8.0-beta"
+		}
+	]
+}
