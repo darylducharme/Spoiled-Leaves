@@ -1,4 +1,9 @@
-export const log_types = new Set([
+/**
+* The type IDs for tree blocks
+* 
+* TODO: add nether trees and the  _wood variants
+*/
+export const log_types: Set<string> = new Set([
   "minecraft:oak_log",
   "minecraft:spruce_log",
   "minecraft:birch_log",
@@ -9,7 +14,10 @@ export const log_types = new Set([
   "minecraft:cherry_log"
 ]);
 
-export const leaf_types = new Set([
+/**
+ * The type IDs for leaf blocks
+ */
+export const leaf_types: Set<string> = new Set([
   "minecraft:leaves",
   "minecraft:leaves2",
   "minecraft:mangrove_leaves",
@@ -18,4 +26,6 @@ export const leaf_types = new Set([
   "minecraft:azalea_leaves_flowered"
 ]);
 
-export const decay_radius = 4; // the radius around a log that leaves may now decay
+// the radius around a log that leaves may now decay
+export const decay_radius: number = 4;
+

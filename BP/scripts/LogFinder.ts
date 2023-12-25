@@ -3,22 +3,24 @@ import { log_types, leaf_types, decay_radius } from "./global_values";
 import VectorSet from "./VectorSet";
 
 export default class LogFinder {
+  private visitedBlocks: VectorSet;
+
   constructor() {
     this.visitedBlocks = new VectorSet();
   }
 
-  reset() {
+  reset(): void {
     this.visitedBlocks.clear();
   }
 
   /**
-  * @param block {Block}
-  * @param depth {number}
-  * 
-  * @return {boolean}
-  */
-  isConnectedToLog(block, depth) {
-    if (block == undefined || this.visitedBlocks.has(block.location)) return false;
+   * @param block {Block}
+   * @param depth {number}
+   * 
+   * @return {boolean}
+   */
+  isConnectedToLog(block: Block, depth: number): boolean {
+    if (block == null || this.visitedBlocks.has(block.location)) return false;
     this.visitedBlocks.add(block.location);
     const blockId = block.typeId;
     if (log_types.has(blockId)) return true;
@@ -26,14 +28,13 @@ export default class LogFinder {
       if (depth <= decay_radius) {
         const newDepth = depth + 1;
         return this.isConnectedToLog(block.north(), newDepth) ||
-          (this.isConnectedToLog(block.east(), newDepth)) ||
-          (this.isConnectedToLog(block.west(), newDepth)) ||
-          (this.isConnectedToLog(block.south(), newDepth)) ||
-          (this.isConnectedToLog(block.above(), newDepth)) ||
-          (this.isConnectedToLog(block.below(), newDepth));
+          this.isConnectedToLog(block.east(), newDepth) ||
+          this.isConnectedToLog(block.west(), newDepth) ||
+          this.isConnectedToLog(block.south(), newDepth) ||
+          this.isConnectedToLog(block.above(), newDepth) ||
+          this.isConnectedToLog(block.below(), newDepth);
       }
     }
-
     return false;
   }
 }

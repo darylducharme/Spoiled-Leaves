@@ -3,6 +3,7 @@ import { decay_radius, leaf_types } from "./global_values";
 import VectorSet from "./VectorSet";
 
 export default class LeafFinder {
+  private visitedBlocks: VectorSet;
 
   constructor() {
     this.visitedBlocks = new VectorSet();
@@ -14,7 +15,7 @@ export default class LeafFinder {
   * 
   * @return {VectorSet}
   */
-  findConnectedLeaves(block, depth) {
+  findConnectedLeaves(block: Block, depth: number) {
     let leafLocs = new VectorSet();
     if (block == undefined || this.visitedBlocks.has(block.location)) return leafLocs;
     this.visitedBlocks.add(block.location);
