@@ -45,9 +45,9 @@ jobs:
         run: deno install -A --reload -f -n dash_compiler https://raw.githubusercontent.com/bridge-core/deno-dash-compiler/main/mod.ts
 
       - name: Build
-        run: dash_compiler build --out build
+        run: dash_compiler build --out .\build\
 
       - name: Archive Output
         uses: actions/upload-artifact@v3
         with:
-          path: build
+          path: .\build
