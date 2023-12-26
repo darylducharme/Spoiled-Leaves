@@ -9,12 +9,6 @@ export default class LeafFinder {
     this.visitedBlocks = new VectorSet();
   }
 
-  /**
-  * @param block {Block}
-  * @param depth {number}
-  * 
-  * @return {VectorSet}
-  */
   findConnectedLeaves(block: Block, depth: number) {
     let leafLocs = new VectorSet();
     if (block == undefined || this.visitedBlocks.has(block.location)) return leafLocs;

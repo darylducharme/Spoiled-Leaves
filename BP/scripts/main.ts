@@ -6,19 +6,19 @@ import { Vector3 } from "./VectorSet";
 import VectorSet from "./VectorSet";
 
 const log_options: BlockEventOptions = {
-  blockTypes: [...log_types, ...leaf_types]
+  blockTypes: Array.from(log_types).concat(Array.from(leaf_types))
 };
 
 const leafLocs: VectorSet = new VectorSet();
 
+console.log("In Main");
+
 world.beforeEvents.playerBreakBlock.subscribe((event: { block: Block }) => {
   const block: Block = event.block; // Block that's broken
+  console.log("player break block");
   findLeavesFromBlock(block);
 }, log_options);
 
-/**
- * @param block {Block}
- */
 function findLeavesFromBlock(block: Block): void {
   const finder: LeafFinder = new LeafFinder();
   leafLocs.mergeWith(finder.findConnectedLeaves(block, 0));
@@ -61,9 +61,6 @@ function leafLoop(): void {
   runLeafLoop();
 }
 
-/**
- *  @param block {Block}
- */
 function decayLeaf(block: Block): void {
   const permutation: any = block.permutation;
   if (!permutation.getState("persistent_bit")) {

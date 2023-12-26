@@ -13,12 +13,6 @@ export default class LogFinder {
     this.visitedBlocks.clear();
   }
 
-  /**
-   * @param block {Block}
-   * @param depth {number}
-   * 
-   * @return {boolean}
-   */
   isConnectedToLog(block: Block, depth: number): boolean {
     if (block == null || this.visitedBlocks.has(block.location)) return false;
     this.visitedBlocks.add(block.location);

@@ -6,20 +6,16 @@ interface Vector2 {
 export interface Vector3 extends Vector2 {
   x: number;
 }
-/**
-* A set like structure for Vector objects, since JS uses === equality
-*/
+
 export default class VectorSet {
 
   xMap: Map<number, YZSet>;
 
   constructor() {
     this.xMap = new Map<number, YZSet>();
+    console.log("In VectorSet constructor");
   }
 
-  /**
-  * @param vector {{x:number, y:number, z:number}}
-  */
   add(vector: Vector3): void {
     if (!this.xMap.has(vector.x)) {
       this.xMap.set(vector.x, new YZSet());
@@ -28,9 +24,6 @@ export default class VectorSet {
     yMap.add(vector);
   }
 
-  /**
-  * @param vector {{x:number, y:number, z:number}}
-  **/
   has(vector: Vector3): boolean {
     if (this.xMap.has(vector.x)) {
       const yMap: YZSet = this.xMap.get(vector.x);
@@ -43,9 +36,6 @@ export default class VectorSet {
     this.xMap.clear();
   }
 
-  /**
-  * @param vectorSet {VectorSet}
-  */
   mergeWith(vectorSet: VectorSet): void {
     vectorSet.xMap.forEach((yzSet: YZSet, x: number) => {
       if (this.xMap.has(x)) {
@@ -64,9 +54,6 @@ export default class VectorSet {
     return value;
   }
 
-  /**
-  * @param vector {{x:number, y:number, z:number}}
-  */
   delete(vector: Vector3): void {
     if (this.xMap.has(vector.x)) {
       const yzMap: YZSet = this.xMap.get(vector.x);
@@ -77,9 +64,6 @@ export default class VectorSet {
     }
   }
 
-  /**
-  * @returns {{x: number, y: number, z: number}}
-  */
   removeOne(): Vector3 {
     if (0 < this.xMap.size) {
       const xMapKeys: number[] = [...this.xMap.keys()];
@@ -106,9 +90,6 @@ class YZSet {
     this.yMap = new Map<number, Set<number>>();
   }
 
-  /**
-  * @param vector {{y:number, z:number}}
-  */
   add(vector: Vector2): void {
     if (!this.yMap.has(vector.y)) {
       this.yMap.set(vector.y, new Set<number>());
@@ -117,9 +98,6 @@ class YZSet {
     zSet.add(vector.z);
   }
 
-  /**
-  * @param vector {{y:number, z:number}}
-  **/
   has(vector: Vector2): boolean {
     if (this.yMap.has(vector.y)) {
       const zSet: Set<number> = this.yMap.get(vector.y);
@@ -128,9 +106,6 @@ class YZSet {
     return false;
   }
 
-  /**
-  * @param yzSet {YZSet}
-  */
   mergeWith(yzSet: YZSet): void {
     yzSet.yMap.forEach((zSet: Set<number>, y: number) => {
       if (this.yMap.has(y)) {
@@ -149,9 +124,6 @@ class YZSet {
     return value;
   }
 
-  /**
-  * @param vector {{y:number, z:number}}
-  */
   delete(vector: Vector2): void {
     if (this.yMap.has(vector.y)) {
       const zSet: Set<number> = this.yMap.get(vector.y);
@@ -162,9 +134,6 @@ class YZSet {
     }
   }
 
-  /**
-  * @returns {{y: number, z: number}}
-  */
   removeOne(): Vector2 {
     if (0 < this.yMap.size) {
       const yMapKeys: number[] = [...this.yMap.keys()];
