@@ -26,6 +26,21 @@ export const leaf_types: Set<string> = new Set([
   "minecraft:azalea_leaves_flowered"
 ]);
 
-// the radius around a log that leaves may now decay
+/**
+ * The radius around a log that leaves may now decay
+ */
 export const decay_radius = 4;
 
+/**
+ *  The maximum number of locations the leaf loop acts upon.
+ */
+export const leaf_loop_limit = 16;
+
+/** 
+ * The minimum delay, in ticks, before a leaf loop gets called
+ */
+export const leaf_loop_min_tick_delay = 5;
+/**
+ * The maximum delay, in ticks, before a leaf loop gets called
+ */
+export const leaf_loop_max_tick_delay = 15;

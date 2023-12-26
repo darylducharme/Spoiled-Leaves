@@ -1,7 +1,7 @@
 import { system, world, Block, Dimension, BlockEventOptions, BlockPermutation } from "@minecraft/server";
 import LeafFinder from "./LeafFinder";
 import LogFinder from "./LogFinder";
-import { log_types, leaf_types } from "./global_values";
+import { log_types, leaf_types, leaf_loop_limit, leaf_loop_max_tick_delay, leaf_loop_min_tick_delay } from "./global_values";
 import { Vector3 } from "./VectorSet";
 import VectorSet from "./VectorSet";
 
@@ -10,8 +10,6 @@ const log_options: BlockEventOptions = {
 };
 
 const leafLocs: VectorSet = new VectorSet();
-
-console.log("In Main");
 
 world.beforeEvents.playerBreakBlock.subscribe((event: { block: Block }) => {
   const block: Block = event.block; // Block that's broken
@@ -28,14 +26,11 @@ function findLeavesFromBlock(block: Block): void {
 function runLeafLoop(): void {
   const leafCount: number = leafLocs.getSize();
   if (0 < leafCount) {
-    // TODO: use runTimeout with a random number been min/max number of ticks
-    // set min/max ticks for loop delay in global_values
-    system.run(leafLoop);
+    const delay = leaf_loop_min_tick_delay + Math.floor(Math.random() *
+      (leaf_loop_max_tick_delay - leaf_loop_min_tick_delay));
+    system.runTimeout(leafLoop, delay);
   }
 }
-
-// TODO: pull out global variables
-const loopLimit = 16;
 
 function leafLoop(): void {
   const logFinder: LogFinder = new LogFinder();
@@ -56,7 +51,7 @@ function leafLoop(): void {
       leafLocs.add(block.location);
       break;
     }
-    if (loopLimit <= ++loopCount) break;
+    if (leaf_loop_limit <= ++loopCount) break;
   }
   runLeafLoop();
 }

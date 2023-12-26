@@ -69,8 +69,8 @@ export default class VectorSet {
       const xMapKeys: number[] = [...this.xMap.keys()];
       const xVal: number = xMapKeys[Math.floor(Math.random() * xMapKeys.length)];
       const yzSet: YZSet = this.xMap.get(xVal);
-      const yzVal: { y: number, z: number } = yzSet.removeOne();
-      const result: { x: number, y: number, z: number } = { x: xVal, y: yzVal.y, z: yzVal.z };
+      const yzVal: Vector2 = yzSet.removeOne();
+      const result: Vector3 = { x: xVal, y: yzVal.y, z: yzVal.z };
       this.delete(result);
       return result;
     }
@@ -140,7 +140,7 @@ class YZSet {
       const yVal: number = yMapKeys[Math.floor(Math.random() * yMapKeys.length)];
       const zSet: Set<number> = this.yMap.get(yVal);
       const zVal: number = [...zSet][Math.floor(Math.random() * zSet.size)];
-      const result: { y: number, z: number } = { y: yVal, z: zVal };
+      const result: Vector2 = { y: yVal, z: zVal };
       this.delete(result);
       return result;
     }
