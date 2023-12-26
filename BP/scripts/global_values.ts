@@ -27,5 +27,5 @@ export const leaf_types: Set<string> = new Set([
 ]);
 
 // the radius around a log that leaves may now decay
-export const decay_radius: number = 4;
+export const decay_radius = 4;
 

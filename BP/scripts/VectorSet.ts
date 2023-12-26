@@ -47,7 +47,7 @@ export default class VectorSet {
   }
 
   getSize(): number {
-    let value: number = 0;
+    let value = 0;
     this.xMap.forEach((yzSet: YZSet) => {
       value += yzSet.getSize();
     });
@@ -117,7 +117,7 @@ class YZSet {
   }
 
   getSize(): number {
-    let value: number = 0;
+    let value = 0;
     this.yMap.forEach((zSet: Set<number>) => {
       value += zSet.size;
     });

@@ -1,4 +1,4 @@
-import { system, world, Block, Dimension, BlockEventOptions } from "@minecraft/server";
+import { system, world, Block, Dimension, BlockEventOptions, BlockPermutation } from "@minecraft/server";
 import LeafFinder from "./LeafFinder";
 import LogFinder from "./LogFinder";
 import { log_types, leaf_types } from "./global_values";
@@ -35,11 +35,11 @@ function runLeafLoop(): void {
 }
 
 // TODO: pull out global variables
-const loopLimit: number = 16;
+const loopLimit = 16;
 
 function leafLoop(): void {
   const logFinder: LogFinder = new LogFinder();
-  let loopCount: number = 0;
+  let loopCount = 0;
   while (0 < leafLocs.getSize()) {
     logFinder.reset();
     const blockLoc: Vector3 = leafLocs.removeOne();
@@ -52,7 +52,7 @@ function leafLoop(): void {
     try {
       if (logFinder.isConnectedToLog(block, 0)) continue;
       decayLeaf(block);
-    } catch (error) {
+    } catch (_error) {
       leafLocs.add(block.location);
       break;
     }
@@ -62,7 +62,7 @@ function leafLoop(): void {
 }
 
 function decayLeaf(block: Block): void {
-  const permutation: any = block.permutation;
+  const permutation: BlockPermutation = block.permutation;
   if (!permutation.getState("persistent_bit")) {
     block.dimension.runCommandAsync(`setblock ${block.x} ${block.y} ${block.z} air destroy`);
     findLeavesFromBlock(block); // need to track blocks we are breaking

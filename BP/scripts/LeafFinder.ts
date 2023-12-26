@@ -10,7 +10,7 @@ export default class LeafFinder {
   }
 
   findConnectedLeaves(block: Block, depth: number) {
-    let leafLocs = new VectorSet();
+    const leafLocs = new VectorSet();
     if (block == undefined || this.visitedBlocks.has(block.location)) return leafLocs;
     this.visitedBlocks.add(block.location);
     const blockId = block.typeId;
