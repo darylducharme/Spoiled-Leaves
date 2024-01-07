@@ -1,7 +1,5 @@
 /**
 * The type IDs for tree blocks
-* 
-* TODO: add nether trees and the  _wood variants
 */
 export const log_types: Set<string> = new Set([
   "minecraft:oak_log",
@@ -11,7 +9,14 @@ export const log_types: Set<string> = new Set([
   "minecraft:acacia_log",
   "minecraft:dark_oak_log",
   "minecraft:mangrove_log",
-  "minecraft:cherry_log"
+  "minecraft:cherry_log",
+  "minecraft:crimson_stem",
+  "minecraft:warped_stem",
+  "minecraft:wood",
+  "minecraft:mangrove_wood",
+  "minecraft:cherry_wood",
+  "minecraft:crimson_hyphae",
+  "minecraft:warped_hyphae"
 ]);
 
 /**
@@ -34,12 +39,12 @@ export const decay_radius = 4;
 /**
  *  The maximum number of locations the leaf loop acts upon.
  */
-export const leaf_loop_limit = 16;
+export const leaf_loop_limit = 12;
 
 /** 
  * The minimum delay, in ticks, before a leaf loop gets called
  */
-export const leaf_loop_min_tick_delay = 5;
+export const leaf_loop_min_tick_delay = 8;
 /**
  * The maximum delay, in ticks, before a leaf loop gets called
  */
