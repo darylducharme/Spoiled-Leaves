@@ -1,5 +1,5 @@
 import { Block } from "@minecraft/server";
-import { decay_radius, leaf_types } from "./global_values";
+import { decay_radius, isLeaf } from "./global_values";
 import VectorSet from "./VectorSet";
 
 export default class LeafFinder {
@@ -13,8 +13,7 @@ export default class LeafFinder {
     const leafLocs = new VectorSet();
     if (block == undefined || this.visitedBlocks.has(block.location)) return leafLocs;
     this.visitedBlocks.add(block.location);
-    const blockId = block.typeId;
-    if (depth == 0 || leaf_types.has(blockId)) {
+    if (depth == 0 || isLeaf(block)) {
       if (depth != 0) leafLocs.add(block.location);
       if (depth < decay_radius) {
         const newDepth = depth + 1;

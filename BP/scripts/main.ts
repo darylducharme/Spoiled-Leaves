@@ -1,12 +1,12 @@
 import { system, world, Block, Dimension, BlockEventOptions, BlockPermutation } from "@minecraft/server";
 import LeafFinder from "./LeafFinder";
 import LogFinder from "./LogFinder";
-import { log_types, leaf_types, leaf_loop_limit, leaf_loop_max_tick_delay, leaf_loop_min_tick_delay } from "./global_values";
+import { connectedBlockTypes, isBreakableLeaf, isLeaf, leaf_loop_limit, leaf_loop_max_tick_delay, leaf_loop_min_tick_delay } from "./global_values";
 import { Vector3 } from "./VectorSet";
 import VectorSet from "./VectorSet";
 
 const log_options: BlockEventOptions = {
-  blockTypes: Array.from(log_types).concat(Array.from(leaf_types))
+  blockTypes: connectedBlockTypes
 };
 
 const leafLocs: Map<string, VectorSet> = new Map<string, VectorSet>();
@@ -60,9 +60,7 @@ function leafLoop(dimension: Dimension): void {
 }
 
 function decayLeaf(block: Block): void {
-  const blockId = block.typeId;
-  const permutation: BlockPermutation = block.permutation;
-  if (leaf_types.has(blockId) && !permutation.getState("persistent_bit")) {
+  if (isBreakableLeaf(block)) {
     block.dimension.runCommandAsync(`setblock ${block.x} ${block.y} ${block.z} air destroy`);
     findLeavesFromBlock(block); // need to track blocks we are breaking
   }

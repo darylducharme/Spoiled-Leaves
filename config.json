@@ -8,11 +8,11 @@
 	"targetVersion": "1.20.40",
 	"description": "",
 	"experimentalGameplay": {
-		"holidayCreatorFeatures": true,
+		"holidayCreatorFeatures": false,
 		"creationOfCustomBiomes": false,
-		"upcomingCreatorFeatures": true,
+		"upcomingCreatorFeatures": false,
 		"enableGameTestFramework": true,
-		"experimentalMolangFeatures": true,
+		"experimentalMolangFeatures": false,
 		"educationEdition": false
 	},
 	"bdsProject": false,

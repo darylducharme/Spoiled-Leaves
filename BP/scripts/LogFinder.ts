@@ -1,5 +1,5 @@
 import { Block } from "@minecraft/server";
-import { log_types, leaf_types, decay_radius } from "./global_values";
+import { isLeaf, isLog, decay_radius } from "./global_values";
 import VectorSet from "./VectorSet";
 
 export default class LogFinder {
@@ -16,9 +16,8 @@ export default class LogFinder {
   isConnectedToLog(block: Block, depth: number): boolean {
     if (block == null || this.visitedBlocks.has(block.location)) return false;
     this.visitedBlocks.add(block.location);
-    const blockId = block.typeId;
-    if (log_types.has(blockId)) return true;
-    if (depth == 0 || leaf_types.has(blockId)) {
+    if (isLog(block)) return true;
+    if (depth == 0 || isLeaf(block)) {
       if (depth <= decay_radius) {
         const newDepth = depth + 1;
         return this.isConnectedToLog(block.north(), newDepth) ||
