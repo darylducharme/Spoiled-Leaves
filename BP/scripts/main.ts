@@ -68,6 +68,8 @@ function decayLeaf(block: Block): void {
 
 world.beforeEvents.playerBreakBlock.subscribe((event: { block: Block }) => {
   const block: Block = event.block; // Block that's broken
+  const tags: String[] = block.getTags();
+  console.log("Block tags: " + tags.toString());
   findLeavesFromBlock(block);
 }, log_options);
 
