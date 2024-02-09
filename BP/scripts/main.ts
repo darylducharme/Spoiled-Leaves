@@ -1,7 +1,7 @@
-import { system, world, Block, Dimension, BlockEventOptions, BlockPermutation } from "@minecraft/server";
+import { system, world, Block, Dimension, BlockEventOptions } from "@minecraft/server";
 import LeafFinder from "./LeafFinder";
 import LogFinder from "./LogFinder";
-import { connectedBlockTypes, isBreakableLeaf, isLeaf, leaf_loop_limit, leaf_loop_max_tick_delay, leaf_loop_min_tick_delay } from "./global_values";
+import { connectedBlockTypes, isBreakableLeaf, leaf_loop_limit, leaf_loop_max_tick_delay, leaf_loop_min_tick_delay } from "./global_values";
 import { Vector3 } from "./VectorSet";
 import VectorSet from "./VectorSet";
 
@@ -68,8 +68,6 @@ function decayLeaf(block: Block): void {
 
 world.beforeEvents.playerBreakBlock.subscribe((event: { block: Block }) => {
   const block: Block = event.block; // Block that's broken
-  const tags: String[] = block.getTags();
-  console.log("Block tags: " + tags.toString());
   findLeavesFromBlock(block);
 }, log_options);
 
