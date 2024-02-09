@@ -23,12 +23,12 @@ jobs:
 
     steps:
       - name: Setup repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup Deno
         uses: denoland/setup-deno@v1
         with:
-          deno-version: v1.1.4
+          deno-version: vx.x.x
 
       # Uncomment this step to verify the use of 'deno fmt' on each commit.
       # - name: Verify formatting
