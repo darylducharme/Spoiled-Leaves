@@ -1,4 +1,4 @@
-![Logo for Spoiled Leaves](https://github.com/darylducharme/Spoiled-Leaves/blob/main/BP/pack_icon.png?raw=true)
+![Logo for Spoiled Leaves](/BP/pack_icon.png?raw=true)
 # Spoiled Leaves
 Fast leaf decay for Minecraft Bedrock edition
 
