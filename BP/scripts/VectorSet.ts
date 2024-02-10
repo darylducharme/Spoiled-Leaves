@@ -1,12 +1,22 @@
+/**
+* Interface for 2 dimensional vector used internally
+*/
 interface Vector2 {
   y: number;
   z: number;
 }
 
+/**
+ * Interface for the 3 dimensional vector representing a block location
+ */
 export interface Vector3 extends Vector2 {
   x: number;
 }
 
+/**
+ * Helper class to simulate a Set of Vector3 objects so that we can track
+ * duplicates and merge sets.
+ */
 export default class VectorSet {
 
   xMap: Map<number, YZSet>;

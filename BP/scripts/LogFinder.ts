@@ -2,6 +2,10 @@ import { Block } from "@minecraft/server";
 import { isLeaf, isLog, decay_radius } from "./global_values";
 import VectorSet from "./VectorSet";
 
+/**
+ * Utility class to see if a leaf block is connected to a log block
+ * within the decay radius.
+ */
 export default class LogFinder {
   private visitedBlocks: VectorSet;
 

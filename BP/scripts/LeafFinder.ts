@@ -2,6 +2,10 @@ import { Block } from "@minecraft/server";
 import { decay_radius, isLeaf } from "./global_values";
 import VectorSet from "./VectorSet";
 
+/**
+ * Utility class to find a set of connected leaf block locations
+ * with the global decay radius.
+ */
 export default class LeafFinder {
   private visitedBlocks: VectorSet;
 

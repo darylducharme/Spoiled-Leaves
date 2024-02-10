@@ -33,6 +33,11 @@ const leaf_types: Set<string> = new Set([
   "minecraft:azalea_leaves_flowered"
 ]);
 
+/**
+ * The IDs of the blocks that are considered contiguous.
+ * 
+ * Basically logs and leaves
+ */
 export const connectedBlockTypes = Array.from(log_types).concat(Array.from(leaf_types));
 
 /**
@@ -41,7 +46,7 @@ export const connectedBlockTypes = Array.from(log_types).concat(Array.from(leaf_
 export const decay_radius = 4;
 
 /**
- *  The maximum number of locations the leaf loop acts upon.
+ *  The maximum number of block locations the leaf loop acts upon.
  */
 export const leaf_loop_limit = 12;
 
@@ -54,14 +59,23 @@ export const leaf_loop_min_tick_delay = 8;
  */
 export const leaf_loop_max_tick_delay = 15;
 
+/**
+ * Function that tests whether or not a leaf block is eligible to be broken
+ */
 export function isBreakableLeaf(block: Block): boolean {
   return isPermutationInBlockIds(block, leaf_types, { "persistent_bit": 0 });
 }
 
+/**
+ * Function that tests whether or not a block is a leaf block
+ */
 export function isLeaf(block: Block): boolean {
   return isPermutationInBlockIds(block, leaf_types);
 }
 
+/**
+ * Function to test whether or not a block is a log
+ */
 export function isLog(block: Block): boolean {
   return isPermutationInBlockIds(block, log_types);
 }
