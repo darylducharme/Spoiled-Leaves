@@ -41,7 +41,7 @@ jobs:
         run: deno test -A
 
       - name: Install Dash
-        run: deno install -A --reload -f -n dash_compiler https://raw.githubusercontent.com/bridge-core/deno-dash-compiler/main/mod.ts
+        run: deno install --global -A --reload -f -n dash_compiler https://raw.githubusercontent.com/bridge-core/deno-dash-compiler/main/mod.ts
 
       - name: Build
         run: dash_compiler build
