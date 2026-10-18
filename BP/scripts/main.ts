@@ -1,107 +1,152 @@
-import { system, world, Block, Dimension, BlockEventOptions } from "@minecraft/server";
+import {
+  system,
+  world,
+  Block,
+  Dimension,
+  PlayerBreakBlockAfterEvent,
+  BlockExplodeAfterEvent
+} from "@minecraft/server";
 import LeafFinder from "./LeafFinder";
 import LogFinder from "./LogFinder";
-import { connectedBlockTypes, isBreakableLeaf, leaf_loop_limit, leaf_loop_max_tick_delay, leaf_loop_min_tick_delay } from "./global_values";
-import { Vector3 } from "./VectorSet";
-import VectorSet from "./VectorSet";
-
-const log_options: BlockEventOptions = {
-  blockTypes: connectedBlockTypes
-};
+import {
+  decay_radius,
+  discoverDynamicTreeBlocks,
+  isBreakableLeaf,
+  isPermutationLeaf,
+  isPermutationLog,
+  leaf_loop_limit,
+  leaf_loop_max_tick_delay,
+  leaf_loop_min_tick_delay
+} from "./global_values";
+import VectorSet, { Vector3 } from "./VectorSet";
 
 const leafLocs: Map<string, VectorSet> = new Map<string, VectorSet>();
+const activeDimensionTimers: Set<string> = new Set<string>();
+const leafFinder = new LeafFinder();
+const logFinder = new LogFinder();
 
 /**
- * Each dimension has its own leaf loop. This gets the leaf block locations
- * for a specific dimension
+ * Each dimension has its own pending leaf set.
  */
 function getDimensionLocs(dimension: Dimension): VectorSet {
-  if (!leafLocs.has(dimension.id)) {
-    leafLocs.set(dimension.id, new VectorSet());
+  let set = leafLocs.get(dimension.id);
+  if (!set) {
+    set = new VectorSet();
+    leafLocs.set(dimension.id, set);
   }
-  const value = leafLocs.get(dimension.id);
-  if (!value) throw new Error(`[Unexpected Error]Somehow leaf locations are undefined for ${dimension.id}`);
-  return value;
+  return set;
 }
 
 /**
- * Given a block, find leaf block locations for blocks that are connected
- * to it within the leaf decay radius from it.
- * 
- * Saves the block locations to the dimension's leaf loop and starts the
- * leaf loop if leaf blocks are found and it isn't already running.
+ * Enqueues connected breakable leaves within `radius` of `origin`
+ * and ensures the dimension's decay loop is scheduled.
  */
-function findLeavesFromBlock(block: Block): void {
-  const finder: LeafFinder = new LeafFinder();
-  const dimension = block.dimension;
+function enqueueLeavesAround(dimension: Dimension, origin: Vector3, radius: number): void {
   const dimensionLocs = getDimensionLocs(dimension);
-  dimensionLocs.mergeWith(finder.findConnectedLeaves(block, 0));
-  runLeafLoop(dimension);
+  const found = leafFinder.findConnectedLeaves(dimension, origin, radius);
+  dimensionLocs.mergeWith(found);
+  scheduleLeafLoop(dimension);
 }
 
 /**
- * Starts the leaf loop for a dimension if that dimension has leaf block
- * locations to process.
+ * Schedules a single leaf decay timer per dimension if leaves are waiting
+ * and a timer is not already pending (prevents timer explosion).
  */
-function runLeafLoop(dimension: Dimension): void {
+function scheduleLeafLoop(dimension: Dimension): void {
   const dimensionLocs = getDimensionLocs(dimension);
-  const leafCount: number = dimensionLocs.getSize();
-  if (0 < leafCount) {
-    const delay = leaf_loop_min_tick_delay + Math.floor(Math.random() *
-      (leaf_loop_max_tick_delay - leaf_loop_min_tick_delay));
-    system.runTimeout(() => leafLoop(dimension), delay);
+  if (dimensionLocs.getSize() === 0 || activeDimensionTimers.has(dimension.id)) {
+    return;
   }
+
+  activeDimensionTimers.add(dimension.id);
+  const delay =
+    leaf_loop_min_tick_delay +
+    Math.floor(Math.random() * (leaf_loop_max_tick_delay - leaf_loop_min_tick_delay + 1));
+
+  system.runTimeout(() => {
+    activeDimensionTimers.delete(dimension.id);
+    leafLoop(dimension);
+  }, delay);
 }
 
 /**
- * A single call of the leaf loop for a dimension.
- * 
- * Will process leaf block locations for a dimension until either the
- * loop limit is reached, and error occurs (expected and handled), or
- * there are no more block locations to process for the dimension.
- * 
- * Will attempt to trigger the leaf loop to start again.
+ * Processes up to `leaf_loop_limit` queued leaf coordinates per batch.
  */
 function leafLoop(dimension: Dimension): void {
-  const logFinder: LogFinder = new LogFinder();
-  let loopCount = 0;
+  let decayedCount = 0;
+  let checkedCount = 0;
+  const maxChecksPerTick = leaf_loop_limit * 3;
   const dimensionLocs = getDimensionLocs(dimension);
-  while (0 < dimensionLocs.getSize()) {
-    logFinder.reset();
+
+  while (dimensionLocs.getSize() > 0 && decayedCount < leaf_loop_limit && checkedCount < maxChecksPerTick) {
+    checkedCount++;
     const blockLoc: Vector3 = dimensionLocs.removeOne();
-    const block: Block | undefined = dimension.getBlock(blockLoc);
-    if (!block) continue;
+
+    let block: Block | undefined;
     try {
-      if (logFinder.isConnectedToLog(block, 0)) continue;
-      decayLeaf(block);
-    } catch (_error) {
-      dimensionLocs.add(block.location);
+      block = dimension.getBlock(blockLoc);
+    } catch {
+      // Chunk may have unloaded; re-queue for later and stop this batch
+      dimensionLocs.add(blockLoc);
       break;
     }
-    if (leaf_loop_limit <= ++loopCount) break;
+
+    // Fast O(1) guard: skip air, unloaded blocks, or player-placed persistent leaves
+    if (!block || !isBreakableLeaf(block)) {
+      continue;
+    }
+
+    try {
+      if (logFinder.isConnectedToLog(block)) {
+        continue;
+      }
+      if (decayLeaf(block)) {
+        decayedCount++;
+      }
+    } catch {
+      dimensionLocs.add(blockLoc);
+      break;
+    }
   }
-  runLeafLoop(dimension);
+
+  scheduleLeafLoop(dimension);
 }
 
 /**
- * Makes an attempt to break a leaf block
- * 
- * Only takes action if it is valid to break
- * If it breaks the block, makes sure to  track that as we may need to 
- * add new blocks to be cleared.
+ * Breaks a single non-persistent leaf block using `setblock ... air destroy`
+ * so vanilla loot tables (saplings, sticks, apples), particles, and sounds trigger.
+ * Then enqueues only its 6 face-adjacent breakable leaf neighbors (radius = 1).
  */
-function decayLeaf(block: Block): void {
-  if (isBreakableLeaf(block)) {
-    block.dimension.runCommandAsync(`setblock ${block.x} ${block.y} ${block.z} air destroy`);
-    findLeavesFromBlock(block); // need to track blocks we are breaking
-  }
+function decayLeaf(block: Block): boolean {
+  if (!isBreakableLeaf(block)) return false;
+  const { dimension, location } = block;
+  dimension.runCommand(`setblock ${location.x} ${location.y} ${location.z} air destroy`);
+  // Only immediate 6 neighbors (radius = 1) could have lost a path directly through this leaf
+  enqueueLeavesAround(dimension, location, 1);
+  return true;
 }
 
-/**
- * Handler for when a player breaks a block.
- */
-world.beforeEvents.playerBreakBlock.subscribe((event: { block: Block }) => {
-  const block: Block = event.block; // Block that's broken
-  findLeavesFromBlock(block);
-}, log_options);
+// 1. Discover any new vanilla update or custom add-on wood/leaf blocks once world loads
+world.afterEvents.worldLoad.subscribe(() => {
+  discoverDynamicTreeBlocks();
+});
 
+// 2. When a player breaks a log or leaf (afterEvents ensures the broken block is already air!)
+world.afterEvents.playerBreakBlock.subscribe((event: PlayerBreakBlockAfterEvent) => {
+  discoverDynamicTreeBlocks();
+  const brokenPerm = event.brokenBlockPermutation;
+  if (isPermutationLog(brokenPerm)) {
+    enqueueLeavesAround(event.dimension, event.block.location, decay_radius);
+  } else if (isPermutationLeaf(brokenPerm)) {
+    enqueueLeavesAround(event.dimension, event.block.location, 1);
+  }
+});
+
+// 3. Also trigger fast leaf decay when explosions (Creepers, TNT, Ghasts) destroy tree trunks
+world.afterEvents.blockExplode.subscribe((event: BlockExplodeAfterEvent) => {
+  discoverDynamicTreeBlocks();
+  const explodedPerm = event.explodedBlockPermutation;
+  if (isPermutationLog(explodedPerm)) {
+    enqueueLeavesAround(event.dimension, event.block.location, decay_radius);
+  }
+});

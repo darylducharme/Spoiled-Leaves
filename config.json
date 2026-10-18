@@ -5,13 +5,13 @@
 	"authors": [
 		"SpoilerDiacre"
 	],
-	"targetVersion": "1.20.71",
-	"description": "",
+	"targetVersion": "1.26.70",
+	"description": "Fast leaf decay for Minecraft Bedrock Edition using O(1) Swap-and-Pop VectorSet and iterative Breadth-First Search (BFS).",
 	"experimentalGameplay": {
 		"holidayCreatorFeatures": false,
 		"creationOfCustomBiomes": false,
 		"upcomingCreatorFeatures": false,
-		"enableGameTestFramework": true,
+		"enableGameTestFramework": false,
 		"experimentalMolangFeatures": false,
 		"educationEdition": false
 	},

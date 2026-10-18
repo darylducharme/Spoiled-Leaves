@@ -1,4 +1,7 @@
 {
+	"imports": {
+		"@std/assert": "https://deno.land/std@0.210.0/assert/mod.ts"
+	},
 	"tasks": {
 		"install_dash": "deno install -A --reload -f -n dash_compiler https://raw.githubusercontent.com/bridge-core/deno-dash-compiler/main/mod.ts",
 		"watch": "dash_compiler build --mode development && dash_compiler watch",

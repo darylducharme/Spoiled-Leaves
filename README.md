@@ -6,8 +6,11 @@ Fast leaf decay for Minecraft Bedrock edition
 
 https://youtu.be/dpRgwTGUPd4
 
-Just install the add-on and add to a world. Does not use any experimental APIs.
+Just install the add-on and add to a world. Uses only stable `@minecraft/server` (`2.10.0`) APIs—no experimental toggles required.
 
-It currently only works with the vanilla wood/leaf types as of  1.20.60 but I would like to make it work with custom leaf/wood types for use with other add-ons.
+### Features & Architecture
+- **True Bedrock Decay Mechanics (Iterative BFS):** Uses iterative Breadth-First Search (BFS) with outer-ring pruning (`Manhattan distance <= 4`) and $O(1)$ Swap-and-Pop spatial hashing (`VectorSet` + `Vector3Utils`) to mirror vanilla Bedrock leaf decay without recursion limits or DFS depth-shadowing.
+- **Future-Proof & Custom Add-On Compatible:** Includes all vanilla logs, woods, stems, hyphae, stripped variants, and leaves through `1.26.70` (including Pale Oak and Poplar), plus runtime auto-discovery via `BlockTypes.getAll()` on `worldLoad` to automatically support future Minecraft updates and third-party custom tree add-ons.
+- **Zero Tick Spikes:** Processes leaf decay in bounded batches per tick with a single guarded timer per dimension.
 
 Read [the story of this add-on's creation](https://fabricatedtechnobabble.com/blog/2024/2/10/fast-leaf-decay-for-minecraft-bedrock-edition) on my blog.

@@ -1,159 +1,128 @@
 /**
-* Interface for 2 dimensional vector used internally
-*/
-interface Vector2 {
+ * 3D Vector interface representing a block or world coordinate.
+ * Structurally identical to @minecraft/server.Vector3.
+ */
+export interface Vector3 {
+  x: number;
   y: number;
   z: number;
 }
 
 /**
- * Interface for the 3 dimensional vector representing a block location
+ * The 6 cardinal face-neighbor unit vectors (Manhattan step = 1).
+ * Compatible with @minecraft/math directional constants.
  */
-export interface Vector3 extends Vector2 {
-  x: number;
+export const CARDINAL_OFFSETS: readonly Readonly<Vector3>[] = [
+  { x: 0, y: 0, z: -1 }, // North
+  { x: 0, y: 0, z: 1 },  // South
+  { x: 1, y: 0, z: 0 },  // East
+  { x: -1, y: 0, z: 0 }, // West
+  { x: 0, y: 1, z: 0 },  // Up
+  { x: 0, y: -1, z: 0 }  // Down
+];
+
+/**
+ * Lightweight, zero-allocation Vector3 utility functions aligned with
+ * the official @minecraft/math (microsoft/minecraft-scripting-libraries) API.
+ */
+export class Vector3Utils {
+  static toKey(v: Vector3): string {
+    return `${v.x},${v.y},${v.z}`;
+  }
+
+  static add(a: Vector3, b: Vector3): Vector3 {
+    return { x: a.x + b.x, y: a.y + b.y, z: a.z + b.z };
+  }
+
+  static equals(a: Vector3, b: Vector3): boolean {
+    return a.x === b.x && a.y === b.y && a.z === b.z;
+  }
+
+  static manhattanDistance(a: Vector3, b: Vector3): number {
+    return Math.abs(a.x - b.x) + Math.abs(a.y - b.y) + Math.abs(a.z - b.z);
+  }
 }
 
 /**
- * Helper class to simulate a Set of Vector3 objects so that we can track
- * duplicates and merge sets.
+ * O(1) Spatial Hash Set of Vector3 block coordinates using Swap-and-Pop.
+ *
+ * Replaces the legacy 3-level nested Map<number, Map<number, Set<number>>>
+ * so that .add(), .has(), .delete(), .getSize(), and randomized .removeOne()
+ * all execute in O(1) time with zero intermediate array-spread allocations.
  */
 export default class VectorSet {
+  private items: Vector3[] = [];
+  private indexMap: Map<string, number> = new Map<string, number>();
 
-  xMap: Map<number, YZSet>;
-
-  constructor() {
-    this.xMap = new Map<number, YZSet>();
-    console.log("In VectorSet constructor");
-  }
-
-  add(vector: Vector3): void {
-    if (!this.xMap.has(vector.x)) {
-      this.xMap.set(vector.x, new YZSet());
+  add(vector: Vector3): boolean {
+    const key = Vector3Utils.toKey(vector);
+    if (this.indexMap.has(key)) {
+      return false;
     }
-    const yMap: YZSet = this.xMap.get(vector.x);
-    yMap.add(vector);
+    this.indexMap.set(key, this.items.length);
+    this.items.push({ x: vector.x, y: vector.y, z: vector.z });
+    return true;
   }
 
   has(vector: Vector3): boolean {
-    if (this.xMap.has(vector.x)) {
-      const yMap: YZSet = this.xMap.get(vector.x);
-      return yMap.has(vector);
-    }
-    return false;
+    return this.indexMap.has(Vector3Utils.toKey(vector));
+  }
+
+  hasKey(key: string): boolean {
+    return this.indexMap.has(key);
   }
 
   clear(): void {
-    this.xMap.clear();
+    this.items.length = 0;
+    this.indexMap.clear();
   }
 
-  mergeWith(vectorSet: VectorSet): void {
-    vectorSet.xMap.forEach((yzSet: YZSet, x: number) => {
-      if (this.xMap.has(x)) {
-        this.xMap.get(x).mergeWith(yzSet);
-      } else {
-        this.xMap.set(x, yzSet);
-      }
-    });
-  }
-
-  getSize(): number {
-    let value = 0;
-    this.xMap.forEach((yzSet: YZSet) => {
-      value += yzSet.getSize();
-    });
-    return value;
-  }
-
-  delete(vector: Vector3): void {
-    if (this.xMap.has(vector.x)) {
-      const yzMap: YZSet = this.xMap.get(vector.x);
-      yzMap.delete(vector);
-      if (yzMap.getSize() == 0) {
-        this.xMap.delete(vector.x);
-      }
+  mergeWith(other: VectorSet): void {
+    for (let i = 0; i < other.items.length; i++) {
+      this.add(other.items[i]);
     }
   }
 
+  getSize(): number {
+    return this.items.length;
+  }
+
+  delete(vector: Vector3): boolean {
+    return this.deleteByKey(Vector3Utils.toKey(vector));
+  }
+
+  private deleteByKey(key: string): boolean {
+    const idx = this.indexMap.get(key);
+    if (idx === undefined) {
+      return false;
+    }
+    const lastIdx = this.items.length - 1;
+    if (idx !== lastIdx) {
+      const lastItem = this.items[lastIdx];
+      this.items[idx] = lastItem;
+      this.indexMap.set(Vector3Utils.toKey(lastItem), idx);
+    }
+    this.items.pop();
+    this.indexMap.delete(key);
+    return true;
+  }
+
+  /**
+   * Removes and returns a uniformly random Vector3 from the set in O(1) time
+   * using Swap-and-Pop (preserving organic canopy decay order).
+   */
   removeOne(): Vector3 {
-    if (0 < this.xMap.size) {
-      const xMapKeys: number[] = [...this.xMap.keys()];
-      const xVal: number = xMapKeys[Math.floor(Math.random() * xMapKeys.length)];
-      const yzSet: YZSet = this.xMap.get(xVal);
-      const yzVal: Vector2 = yzSet.removeOne();
-      const result: Vector3 = { x: xVal, y: yzVal.y, z: yzVal.z };
-      this.delete(result);
-      return result;
+    const count = this.items.length;
+    if (count === 0) {
+      throw new Error("No VectorSet entries to remove");
     }
-    throw new Error("No VectorSet entries to remove");
-  }
-}
-
-/**
- * Helper class for VectorSet.
- *
- * Simplifies the nesting of the Maps and Set
- */
-class YZSet {
-  yMap: Map<number, Set<number>>;
-
-  constructor() {
-    this.yMap = new Map<number, Set<number>>();
+    const randIdx = Math.floor(Math.random() * count);
+    const chosen = this.items[randIdx];
+    this.deleteByKey(Vector3Utils.toKey(chosen));
+    return chosen;
   }
 
-  add(vector: Vector2): void {
-    if (!this.yMap.has(vector.y)) {
-      this.yMap.set(vector.y, new Set<number>());
-    }
-    const zSet: Set<number> = this.yMap.get(vector.y);
-    zSet.add(vector.z);
-  }
-
-  has(vector: Vector2): boolean {
-    if (this.yMap.has(vector.y)) {
-      const zSet: Set<number> = this.yMap.get(vector.y);
-      return zSet.has(vector.z);
-    }
-    return false;
-  }
-
-  mergeWith(yzSet: YZSet): void {
-    yzSet.yMap.forEach((zSet: Set<number>, y: number) => {
-      if (this.yMap.has(y)) {
-        this.yMap.set(y, new Set<number>([...this.yMap.get(y), ...zSet]));
-      } else {
-        this.yMap.set(y, zSet);
-      }
-    });
-  }
-
-  getSize(): number {
-    let value = 0;
-    this.yMap.forEach((zSet: Set<number>) => {
-      value += zSet.size;
-    });
-    return value;
-  }
-
-  delete(vector: Vector2): void {
-    if (this.yMap.has(vector.y)) {
-      const zSet: Set<number> = this.yMap.get(vector.y);
-      zSet.delete(vector.z);
-      if (zSet.size == 0) {
-        this.yMap.delete(vector.y);
-      }
-    }
-  }
-
-  removeOne(): Vector2 {
-    if (0 < this.yMap.size) {
-      const yMapKeys: number[] = [...this.yMap.keys()];
-      const yVal: number = yMapKeys[Math.floor(Math.random() * yMapKeys.length)];
-      const zSet: Set<number> = this.yMap.get(yVal);
-      const zVal: number = [...zSet][Math.floor(Math.random() * zSet.size)];
-      const result: Vector2 = { y: yVal, z: zVal };
-      this.delete(result);
-      return result;
-    }
-    throw new Error("No YZfet entries to remove");
+  values(): readonly Vector3[] {
+    return this.items;
   }
 }
